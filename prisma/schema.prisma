@@ -1,0 +1,282 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+model Branch {
+  id             String        @id @default(uuid())
+  password       String?
+  role           Role          @default(USER)
+  isVarified     Boolean       @default(false)
+  disabled       Boolean       @default(false)
+  isOneTimePaid  Boolean       @default(false)
+  haveToPay      Boolean       @default(true)
+  transId        String?
+  otp            Int?
+  otpToken       String?
+  otpSentDate    DateTime?
+  branchInfo     BranchInfo?
+  personalInfo   PersonalInfo?
+  moreInfo       MoreInfo?
+  students       Student[]
+  paymentInfo    Payment[]
+  ppSizePhoto    PassportUrls?
+  tradeLicense   TLicenseUrls?
+  nationalIDCard NIDCardUrls?
+  signature      SignUrls?
+  createdAt      DateTime      @default(now())
+  Employee       Employee[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model PassportUrls {
+  id         String @id @default(uuid())
+  secure_url String
+  public_id  String
+  branchId   String @unique
+  branch     Branch @relation(fields: [branchId], references: [id])
+}
+
+model TLicenseUrls {
+  id         String @id @default(uuid())
+  secure_url String
+  public_id  String
+  branchId   String @unique
+  branch     Branch @relation(fields: [branchId], references: [id])
+}
+
+model NIDCardUrls {
+  id         String @id @default(uuid())
+  secure_url String
+  public_id  String
+  branchId   String @unique
+  branch     Branch @relation(fields: [branchId], references: [id])
+}
+
+model SignUrls {
+  id         String @id @default(uuid())
+  secure_url String
+  public_id  String
+  branchId   String @unique
+  branch     Branch @relation(fields: [branchId], references: [id])
+}
+
+model BranchInfo {
+  id            String @id @default(uuid())
+  branchNo      Int?   @default(autoincrement())
+  branchName    String
+  branchMobile  String
+  branchEmail   String
+  instituteAge  String
+  noOfComputers String
+  branchId      String @unique
+  branch        Branch @relation(fields: [branchId], references: [id])
+}
+
+model PersonalInfo {
+  id          String @id @default(uuid())
+  fullName    String
+  fathersName String
+  mothersName String
+  gender      String
+  bloodGroup  String
+  branchId    String @unique
+  branch      Branch @relation(fields: [branchId], references: [id])
+}
+
+model MoreInfo {
+  id               String  @id @default(uuid())
+  additionalMobile String?
+  division         String
+  district         String
+  upazila          String
+  address          String
+  postcode         String?
+  branchId         String  @unique
+  branch           Branch  @relation(fields: [branchId], references: [id])
+}
+
+// student model 
+model Student {
+  id                String           @id @default(uuid())
+  name              String
+  fatherName        String
+  motherName        String
+  mobile            String
+  profileDoc        ProfileImg?
+  isPaid            Boolean          @default(false)
+  gender            String
+  dateOfBirth       String
+  nationality       String
+  religion          String
+  bloodGroup        String
+  email             String?          @unique
+  courseDuration    String
+  courseRange       String
+  courseTrade       String
+  mediam            String
+  passedBoard       String
+  passedYear        String
+  passedRoll        String
+  passedResult      String
+  genRoll           String?
+  genReg            String?
+  genResult         String?
+  certificateSLNo   String?
+  passedType        PassedType
+  transId           String?
+  branchId          String
+  payment_fulfilled Boolean          @default(false)
+  paymentHistory    PaymentHistory[]
+  branch            Branch           @relation(fields: [branchId], references: [id])
+  createdAt         DateTime         @default(now())
+}
+
+model PaymentHistory {
+  id               String   @id @default(uuid())
+  amount           Int
+  employeeId       String?
+  employeeName     String?
+  employeePosition String?
+  branchId         String
+  studentId        String
+  student          Student  @relation(fields: [studentId], references: [id])
+  createdAt        DateTime @default(now())
+}
+
+// for employee 
+model Employee {
+  id                String   @id @default(uuid())
+  fullName          String
+  fatherName        String
+  phoneNumber       String
+  position          String
+  address           String
+  fixedSalary       Int
+  public_id         String
+  secure_url        String
+  salaryChangedDate DateTime
+  joinedAt          DateTime @default(now())
+  username          String   @unique
+  password          String
+  active            Boolean  @default(false)
+  branchId          String
+  branch            Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  salaries          Salary[]
+  updatedAt         DateTime @updatedAt
+}
+
+enum AmountStatus {
+  awaiting
+  accepted
+}
+
+model Salary {
+  id         String       @id @default(uuid())
+  amount     Int
+  month      String
+  monthIndex Int
+  year       Int
+  status     AmountStatus
+  method     String
+  employeeId String
+  eployee    Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+// for studnet model
+enum PassedType {
+  JSC
+  SSC
+}
+
+model ProfileImg {
+  id         String  @id @default(uuid())
+  secure_url String
+  public_id  String
+  studentId  String  @unique
+  student    Student @relation(fields: [studentId], references: [id])
+}
+
+model Payment {
+  id             String   @id @default(uuid())
+  name           String
+  roll           String
+  courseDuration String
+  courseTrade    String
+  amount         String
+  phoneNo        String
+  status         String   @default("success")
+  branchId       String
+  branch         Branch   @relation(fields: [branchId], references: [id])
+  createdAt      DateTime @default(now())
+}
+
+// course fees
+
+model CourseFees {
+  id          String   @id @default(uuid())
+  name        String
+  threeMonths String
+  sixMonths   String
+  oneYear     String
+  twoYears    String
+  threeYears  String
+  fourYears   String
+  createdAt   DateTime @default(now())
+}
+
+// one time payment
+model OneTimePaymentForBranch {
+  id        String   @id @default(uuid())
+  price     String
+  createdAt DateTime @default(now())
+}
+
+// notice and other 
+model Notice {
+  id        String   @id @default(uuid())
+  text      String
+  createdAt DateTime @default(now())
+}
+
+// home page galery
+
+model Gallery {
+  id         String   @id @default(uuid())
+  public_id  String
+  secure_url String
+  text       String
+  createdAt  DateTime @default(now())
+}
+
+// for team
+
+model Team {
+  id         String @id @default(uuid())
+  public_id  String
+  secure_url String
+  name       String
+  title      String
+  order      Int
+
+  createdAt DateTime @default(now())
+}
+
+// hero banner 
+model HeroBanner {
+  id         String   @id @default(uuid())
+  public_id  String
+  secure_url String
+  createdAt  DateTime @default(now())
+}
