@@ -32,7 +32,9 @@ export default function RootLayout({
           salsa.variable
         )}
       >
-        <ReactQuery>{children}</ReactQuery>
+        <ReactQuery>
+          <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
+        </ReactQuery>
         <Toaster />
       </body>
     </html>
