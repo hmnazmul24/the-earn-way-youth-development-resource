@@ -1,7 +1,7 @@
 "use client";
 
 import { StudentPaidType } from "@/components/data/tableHelper";
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 
 // Define the type for your student data
@@ -19,10 +19,8 @@ const modifyData = (info: StudentPaidType[]): StudentData[] => {
   let newData: StudentData[] = info.map((item) => ({
     Name: item.name,
     Roll: item.genRoll!,
-
     Registration: item.genReg!,
     Mobile: item.mobile,
-
     Trade: item.trade!,
     Session: item.range!,
     Result: item.result ?? "",
@@ -37,7 +35,18 @@ export default function DownloadListForExcel({
   children: ReactNode;
   studentInfo: StudentPaidType[];
 }) {
-  // Example data
+  const [isClient, setIsClient] = useState(false);
+
+  // Set `isClient` to true after component mounts (client-side only)
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Early return if not client-side yet
+  if (!isClient) {
+    return null; // You could return a loading spinner here if desired
+  }
+
   const studentData: StudentData[] = modifyData(studentInfo);
 
   const handleDownloadExcel = () => {
